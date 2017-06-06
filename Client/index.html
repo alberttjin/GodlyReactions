@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+    border:1px solid #d3d3d3;
+    background-color: #f1f1f1;
+}
+</style>
+</head>
+<body onload="startGame()" onclick="setMousePos(event)">
+<script>
+
+var mainChar;
+var bmouseX = 10;
+var bmouseY = 0;
+var mouseX = 10;
+var mouseY = 0;
+var attack;
+var setAttack = false;
+var attackExists = false;
+var moving = false;
+var backgroundX = 100;
+var backgroundY = 100;
+var background = new Image();
+background.src = "sky.jpg";
+
+function startGame() {
+    gameState.start();
+    mainChar = new character(50, 50, "dragon.png", screen.width / 2, screen.height / 2);
+}
+
+var gameState = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        this.canvas.width = screen.width;
+        this.canvas.height = screen.height;
+        this.context = this.canvas.getContext("2d");
+        this.interval = setInterval(updateGame, 1);
+        this.backgroundSizeX = this.canvas.width * 4;
+        this.backgroundSizeY = this.canvas.height * 4;
+        this.context.drawImage(background, backgroundX, backgroundY,
+          this.canvas.width, this.canvas.height, 0, 0, this.backgroundSizeX, this.backgroundSizeY);
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        window.addEventListener('keydown', function (e) {
+          if (!attackExists) {
+            fire();
+          }
+        })
+        window.addEventListener('keyup', function (e) {
+          gameState.key = false;
+        })
+        window.addEventListener('mousemove', function (e) {
+          gameState.currX = e.clientX;
+          gameState.currY = e.clientY;
+        })
+    }
+}
+
+function setMousePos(event) {
+    var oldX = mouseX;
+    var oldY = mouseY;
+    mouseX = event.clientX;
+    mouseY = event.clientY;
+    bmouseX = mouseX + backgroundX;
+    bmouseY = mouseY + backgroundY;
+    rotateChar(oldX, oldY);
+    moving = true;
+}
+function pythagorean(x1, y1, x2, y2) {
+    var xDis = Math.pow((x1 - x2), 2);
+    var yDis = Math.pow((y1 - y2), 2);
+    return Math.sqrt(xDis + yDis);
+}
+function rotateChar(oldX, oldY) {
+    var side1 = pythagorean(mouseX, mouseY, oldX, oldY);
+    var side2 = pythagorean(mouseX, mouseY, mainChar.x, mainChar.y);
+    var side3 = pythagorean(oldX, oldY, mainChar.x, mainChar.y);
+    var numerator = Math.pow(side2, 2) + Math.pow(side3, 2) - Math.pow(side1, 2);
+    var denominator = 2 * side2 * side3;
+    var rotateAmount = Math.acos(numerator / denominator);
+    if (checkNegative(oldX, oldY)) {
+      rotateAmount *= -1;
+    }
+    mainChar.angle += rotateAmount;
+}
+function checkNegative(x, y) {
+    var slope = (y - mainChar.y) / (x - mainChar.x);
+    var b = y - (slope * x);
+    var result = (slope * mouseX) + b;
+    if (x > mainChar.x) {
+      return result > mouseY;
+    } else {
+      return result < mouseY;
+    }
+}
+
+function moveChar() {
+    if (moving) {
+      var hypotenuse = pythagorean(mouseX, mouseY, mainChar.x, mainChar.y);
+      var xMove = (mouseX - mainChar.x) / (hypotenuse * 1.5);
+      var yMove = (mouseY - mainChar.y) / (hypotenuse * 1.5);
+      //mainChar.x += xMove;
+      //mainChar.y += yMove;
+      moveCamera(xMove, yMove);
+    }
+}
+
+function moveCamera(xMove, yMove) {
+    var ctx = gameState.context;
+    console.log(xMove);
+    console.log(yMove);
+    if (backgroundX > 0) {
+      if (backgroundY > 0) {
+        backgroundX += xMove;
+        backgroundY += yMove;
+        console.log(backgroundX);
+        console.log(backgroundY);
+      } else {
+        backgroundX += xMove;
+      }
+    } else {
+      backgroundY += yMove;
+    }
+    ctx.drawImage(background, backgroundX, backgroundY, gameState.canvas.width,
+      gameState.canvas.height, 0, 0, gameState.canvas.width * 4, gameState.canvas.height * 4);
+}
+
+/*function moveCamera() {
+    var ctx = gameState.context;
+    var tempBackground = new Image();
+    tempBackground.src = "sky.jpg";
+    console.log(checkScrollX());
+    console.log(checkScrollY());
+    if (checkScrollX() < 0) {
+      if (backgroundX > 0) {
+        backgroundX -= 10;
+      }
+    }
+    if (checkScrollX() > 0) {
+      backgroundX += 2;
+    }
+    if (checkScrollY() < 0) {
+      if (backgroundY > 0) {
+        backgroundY -= 10;
+      }
+    }
+    if (checkScrollY() > 0) {
+        backgroundY += 10;
+    }
+    ctx.drawImage(tempBackground, backgroundX, backgroundY, gameState.canvas.width,
+      gameState.canvas.height, 0, 0, gameState.canvas.width * 4, gameState.canvas.height * 4);
+}
+
+function checkScrollX() {
+    if (gameState.currX <= 20) {
+      return -1;
+    }
+    if (gameState.currX >= gameState.canvas.width - 20) {
+        return 1
+    }
+    return 0;
+}
+
+function checkScrollY() {
+    if (gameState.currY <= 20) {
+      return -1;
+    }
+    if (gameState.currY >= gameState.canvas.length - 20) {
+        return 1;
+    }
+    return 0;
+}*/
+
+function clearCanvas() {
+    gameState.context.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+}
+
+function character(width, height, image, x, y) {
+    this.width = width;
+    this.height = height;
+    this.x = x;
+    this.y = y;
+    this.angle = 0;
+    this.charModel = new Image();
+    this.charModel.src = image;
+    this.update = function() {
+      ctx = gameState.context;
+      ctx.save();
+      ctx.translate(this.x, this.y)
+      ctx.rotate(this.angle);
+      ctx.drawImage(this.charModel, this.width / -2, this.height / -2, this.width, this.height);
+      ctx.restore();
+    }
+}
+
+function projectile(width, height, image, x, y, goalx, goaly) {
+    this.width = width;
+    this.height = height;
+    this.x = x;
+    this.y = y;
+    this.goalx = goalx;
+    this.goaly = goaly;
+    this.charModel = new Image();
+    this.charModel.src = image;
+    var xDis = Math.pow(this.goalx - this.x, 2);
+    var yDis = Math.pow(this.goaly - this.y, 2);
+    var hypotenuse = Math.sqrt(xDis + yDis);
+    this.moveX = ((this.goalx - this.x) / hypotenuse) * 3;
+    this.moveY = ((this.goaly - this.y) / hypotenuse) * 3;
+    this.update = function() {
+      this.x += this.moveX;
+      this.y += this.moveY;
+      ctx = gameState.context;
+      ctx.drawImage(this.charModel, this.x, this.y, this.width, this.height);
+    }
+}
+
+function fire() {
+    setAttack = true;
+    attackExists = true;
+    attack = new projectile(50, 25, "fireball.png", mainChar.x, mainChar.y, gameState.currX, gameState.currY);
+}
+
+function checkStop() {
+    var bX = mainChar.x + backgroundX;
+    var bY = mainChar.y + backgroundY;
+    if (bX == bmouseX && bY == bmouseY) {
+      moving = false;
+    }
+}
+
+function checkAttack() {
+    if (attack.x > gameState.canvas.width || attack.x < 0 ||   attack.y > gameState.canvas.length || attack.y < 0) {
+      attackExists = false;
+    }
+}
+
+function updateGame() {
+    clearCanvas();
+    checkStop();
+    moveChar();
+    if (setAttack) {
+      checkAttack();
+      attack.update();
+    }
+    mainChar.update();
+}
+</script>
+
+</body>
+</html>

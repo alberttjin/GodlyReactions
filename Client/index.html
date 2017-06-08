@@ -8,27 +8,59 @@ canvas {
     background-color: #f1f1f1;
 }
 </style>
+<script src="/socket.io/socket.io.js"></script>
+<script></script>
 </head>
-<body onload="startGame()" onclick="setMousePos(event)">
+<body onclick="setMousePos(event)">
 <script>
 
 var mainChar;
+var enemy;
+var enemyAttack;
+var firstJoined = false;
 var bmouseX = 10;
 var bmouseY = 0;
 var mouseX = 10;
 var mouseY = 0;
 var attack;
 var setAttack = false;
+var setEnemyAttack = false;
 var attackExists = false;
 var moving = false;
-var backgroundX = 100;
-var backgroundY = 100;
 var background = new Image();
 background.src = "sky.jpg";
+var socket = io();
+
+socket.on("updateAngle", function(data) {
+    enemy.angle += data.rotation;
+});
+socket.on("updateEnemyChar", function(data) {
+    console.log("updated2");
+    moveEnemy(data.characterX, data.characterY);
+});
+
+socket.on("updateEnemyAttack", function(data) {
+    setEnemyAttack = true;
+    enemyAttack = new projectile(50, 25, "fireball.png", data.currX, data.currY, data.goalX, data.goalY);
+});
+
+socket.on("firstJoined", function(data){
+    firstJoined = true;
+});
+
+socket.on("start", function(data) {
+    startGame();
+});
 
 function startGame() {
     gameState.start();
-    mainChar = new character(50, 50, "dragon.png", screen.width / 2, screen.height / 2);
+    if (firstJoined) {
+      mainChar = new character(50, 50, "dragon2.png", screen.width / 4, screen.height / 2);
+      enemy = new character(50, 50, "dragon2.png", (screen.width * 3) / 4, screen.height / 2);
+    } else {
+      enemy = new character(50, 50, "dragon2.png", screen.width / 4, screen.height / 2);
+      mainChar = new character(50, 50, "dragon2.png", (screen.width * 3) / 4, screen.height / 2);
+    }
 }
 
 var gameState = {
@@ -37,12 +69,8 @@ var gameState = {
         this.canvas.width = screen.width;
         this.canvas.height = screen.height;
         this.context = this.canvas.getContext("2d");
-        this.interval = setInterval(updateGame, 1);
-        this.backgroundSizeX = this.canvas.width * 4;
-        this.backgroundSizeY = this.canvas.height * 4;
-        this.context.drawImage(background, backgroundX, backgroundY,
-          this.canvas.width, this.canvas.height, 0, 0, this.backgroundSizeX, this.backgroundSizeY);
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.interval = setInterval(updateGame, 0.5);
         window.addEventListener('keydown', function (e) {
           if (!attackExists) {
             fire();
@@ -63,8 +91,6 @@ function setMousePos(event) {
     var oldY = mouseY;
     mouseX = event.clientX;
     mouseY = event.clientY;
-    bmouseX = mouseX + backgroundX;
-    bmouseY = mouseY + backgroundY;
     rotateChar(oldX, oldY);
     moving = true;
 }
@@ -84,6 +110,7 @@ function rotateChar(oldX, oldY) {
       rotateAmount *= -1;
     }
     mainChar.angle += rotateAmount;
+    socket.emit("angle", {rotation: rotateAmount});
 }
 function checkNegative(x, y) {
     var slope = (y - mainChar.y) / (x - mainChar.x);
@@ -101,78 +128,23 @@ function moveChar() {
       var hypotenuse = pythagorean(mouseX, mouseY, mainChar.x, mainChar.y);
       var xMove = (mouseX - mainChar.x) / (hypotenuse * 1.5);
       var yMove = (mouseY - mainChar.y) / (hypotenuse * 1.5);
-      //mainChar.x += xMove;
-      //mainChar.y += yMove;
-      moveCamera(xMove, yMove);
+      mainChar.x += xMove;
+      mainChar.y += yMove;
+      updateServerChar(xMove, yMove);
     }
 }
 
-function moveCamera(xMove, yMove) {
-    var ctx = gameState.context;
+function moveEnemy(xMove, yMove) {
+    enemy.x += xMove;
+    enemy.y += yMove;
     console.log(xMove);
     console.log(yMove);
-    if (backgroundX > 0) {
-      if (backgroundY > 0) {
-        backgroundX += xMove;
-        backgroundY += yMove;
-        console.log(backgroundX);
-        console.log(backgroundY);
-      } else {
-        backgroundX += xMove;
-      }
-    } else {
-      backgroundY += yMove;
-    }
-    ctx.drawImage(background, backgroundX, backgroundY, gameState.canvas.width,
-      gameState.canvas.height, 0, 0, gameState.canvas.width * 4, gameState.canvas.height * 4);
 }
 
-/*function moveCamera() {
+function updateBackground() {
     var ctx = gameState.context;
-    var tempBackground = new Image();
-    tempBackground.src = "sky.jpg";
-    console.log(checkScrollX());
-    console.log(checkScrollY());
-    if (checkScrollX() < 0) {
-      if (backgroundX > 0) {
-        backgroundX -= 10;
-      }
-    }
-    if (checkScrollX() > 0) {
-      backgroundX += 2;
-    }
-    if (checkScrollY() < 0) {
-      if (backgroundY > 0) {
-        backgroundY -= 10;
-      }
-    }
-    if (checkScrollY() > 0) {
-        backgroundY += 10;
-    }
-    ctx.drawImage(tempBackground, backgroundX, backgroundY, gameState.canvas.width,
-      gameState.canvas.height, 0, 0, gameState.canvas.width * 4, gameState.canvas.height * 4);
+    ctx.drawImage(background, 0, 0, gameState.canvas.width, gameState.canvas.height);
 }
-
-function checkScrollX() {
-    if (gameState.currX <= 20) {
-      return -1;
-    }
-    if (gameState.currX >= gameState.canvas.width - 20) {
-        return 1
-    }
-    return 0;
-}
-
-function checkScrollY() {
-    if (gameState.currY <= 20) {
-      return -1;
-    }
-    if (gameState.currY >= gameState.canvas.length - 20) {
-        return 1;
-    }
-    return 0;
-}*/
-
 function clearCanvas() {
     gameState.context.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
 }
@@ -220,15 +192,12 @@ function projectile(width, height, image, x, y, goalx, goaly) {
 function fire() {
     setAttack = true;
     attackExists = true;
+    updateServerAttack(mainChar.x, mainChar.y, gameState.currX, gameState.currY);
     attack = new projectile(50, 25, "fireball.png", mainChar.x, mainChar.y, gameState.currX, gameState.currY);
 }
 
 function checkStop() {
-    var bX = mainChar.x + backgroundX;
-    var bY = mainChar.y + backgroundY;
-    if (bX == bmouseX && bY == bmouseY) {
-      moving = false;
-    }
+    return mainChar.x == mouseX && mainChar.y == mouseY;
 }
 
 function checkAttack() {
@@ -236,18 +205,45 @@ function checkAttack() {
       attackExists = false;
     }
 }
+function checkEnemyAttack() {
+    if (enemyAttack.x > gameState.canvas.width || enemyAttack.x < 0 ||  enemyAttack.y > gameState.canvas.length || enemyAttack.y < 0) {
+      attackExists = false;
+    }
+}
+function updateServerChar(changeX, changeY) {
+    var updateContent = {
+      characterX: changeX,
+      characterY: changeY,
+    }
+    socket.emit("updateChar", updateContent);
+}
+
+function updateServerAttack(x, y, x2, y2) {
+    var updateContent = {
+      currX: x,
+      currY: y,
+      goalX: x2,
+      goalY: y2
+    }
+    socket.emit("updateAttack", updateContent);
+}
 
 function updateGame() {
     clearCanvas();
-    checkStop();
+    //checkStop();
+    updateBackground();
     moveChar();
     if (setAttack) {
       checkAttack();
       attack.update();
     }
+    if (setEnemyAttack) {
+      checkEnemyAttack();
+      enemyAttack.update();
+    }
     mainChar.update();
+    enemy.update();
 }
 </script>
 
-</body>
 </html>

@@ -1,31 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <style>
-canvas {
-    border:1px solid #d3d3d3;
-    background-color: #f1f1f1;
-}
 </style>
-<script src="/socket.io/socket.io.js"></script>
 </head>
-<body onload="startGame()">
+<body>
 <script>
-  var canvas;
-  var socket = io();
-  console.log("before start");
-  function startGame() {
-    console.log("started");
-    canvas = document.createElement("canvas");
-    canvas.width = 200;
-    canvas.height = 200;
-    document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-    var ctx = canvas.getContext("2d");
-    var dragon = new Image();
-    dragon.src = "dragon.png";
-    ctx.drawImage(dragon, 20, 20, 60, 60);
-  }
+function storeName() {
+  localStorage.setItem("username", "albert");
+  location.href = "index3.html";
+}
 </script>
+<button onclick = "storeName()"></button>
 </body>
 </html>

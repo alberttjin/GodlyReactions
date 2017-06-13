@@ -1,4 +1,9 @@
 var mainChar;
+var healthBar;
+var username;
+var enemyName;
+var enemyHealthBar;
+var MAX_HP = 4;
 var enemy;
 var enemyAttack;
 var firstJoined = false;
@@ -20,12 +25,19 @@ background.src = "sky.jpg";
 function startGame() {
     gameState.start();
     if (firstJoined) {
-      mainChar = new character(50, 50, "dragon2.png", screen.width / 4, screen.height / 2);
-      enemy = new character(50, 50, "dragon2.png", (screen.width * 3) / 4, screen.height / 2);
+      console.log(username);
+      mainChar = new character(50, 50, "dragon2.png", screen.width / 4, screen.height / 2, MAX_HP, true);
+      enemy = new character(50, 50, "dragon2.png", (screen.width * 3) / 4, screen.height / 2, MAX_HP, false);
+      healthBar = new healthbar(50, 10, (screen.width / 4) - 20, (screen.height / 2) + 30, MAX_HP);
+      enemyHealthBar = new healthbar(50, 10, ((screen.width * 3) / 4) - 20, (screen.height / 2) + 30, MAX_HP);
     } else {
-      enemy = new character(50, 50, "dragon2.png", screen.width / 4, screen.height / 2);
-      mainChar = new character(50, 50, "dragon2.png", (screen.width * 3) / 4, screen.height / 2);
+      console.log(username);
+      enemy = new character(50, 50, "dragon2.png", screen.width / 4, screen.height / 2, MAX_HP, false);
+      mainChar = new character(50, 50, "dragon2.png", (screen.width * 3) / 4, screen.height / 2, MAX_HP, true);
+      healthBar = new healthbar(50, 10, ((screen.width * 3) / 4) - 20, (screen.height / 2) + 30, MAX_HP);
+      enemyHealthBar = new healthbar(50, 10, (screen.width / 4) - 20, (screen.height / 2) + 30, MAX_HP);
     }
+
 }
 
 var gameState = {
@@ -36,6 +48,8 @@ var gameState = {
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
         this.interval = setInterval(updateGame, 0.5);
+        username = sessionStorage.getItem("username");
+        socket.emit('username', {enemyUser: username});
         window.addEventListener('keydown', function (e) {
           if (!attackExists) {
             fire();
@@ -59,10 +73,8 @@ function setMousePos(event) {
     mouseX = event.clientX;
     mouseY = event.clientY;
     if (mainChar.x == prevMouseX && mainChar.y == prevMouseY) {
-      console.log("crie");
       rotateCharSame();
     } else {
-      console.log("what");
       rotateChar();
     }
     moving = true;
@@ -127,8 +139,20 @@ function moveChar() {
       var yMove = (mouseY - mainChar.y) / (hypotenuse * 1.5);
       mainChar.x += xMove;
       mainChar.y += yMove;
+      moveHealthBar(xMove, yMove);
       updateServerChar(xMove, yMove);
     }
+}
+
+function moveHealthBar(xMove, yMove) {
+    healthBar.x += xMove;
+    healthBar.y += yMove;
+    socket.emit('health', {healthX : xMove, healthY: yMove});
+}
+
+function moveEnemyHealthBar(xMove, yMove) {
+    enemyHealthBar.x += xMove;
+    enemyHealthBar.y += yMove;
 }
 
 function moveEnemy(xMove, yMove) {
@@ -145,26 +169,28 @@ function clearCanvas() {
     gameState.context.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
 }
 
-function character(width, height, image, x, y) {
+function character(width, height, image, x, y, hp, currUser) {
+    this.currUser = currUser;
+    console.log(this.currUser);
     this.width = width;
     this.height = height;
     this.x = x;
     this.y = y;
     this.angle = 0;
-    this.maxHP = 3;
-    this.hp = this.maxHP;
+    this.hp = hp;
     this.charModel = new Image();
     this.charModel.src = image;
     this.update = function() {
       if (setEnemyAttack) {
         if (checkHP() && !invincible) {
           this.hp -= 1;
+          healthBar.hp -= 1;
+          socket.emit('damaged');
           invincible = true;
           if (this.hp <= 0) {
             socket.emit("lost");
             location.href = "youlose.html";
           }
-          console.log(this.hp);
         }
       }
       ctx = gameState.context;
@@ -173,6 +199,13 @@ function character(width, height, image, x, y) {
       ctx.rotate(this.angle);
       ctx.drawImage(this.charModel, this.width / -2, this.height / -2, this.width, this.height);
       ctx.restore();
+      ctx.font = "12px Arial";
+      if (this.currUser) {
+        console.log("myuser");
+        ctx.fillText(username, this.x - 22, this. y - 35);
+      } else {
+        ctx.fillText(enemyName, this.x - 22, this. y - 35);
+      }
     }
 }
 
@@ -215,6 +248,24 @@ function projectile(width, height, image, x, y, goalx, goaly) {
       this.y += this.moveY;
       ctx = gameState.context;
       ctx.drawImage(this.charModel, this.x, this.y, this.width, this.height);
+    }
+}
+
+function healthbar(width, height, x, y, hp) {
+    this.hp = hp;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.pictures = [];
+    for (i = 1; i < 6; i++) {
+      var currPic = new Image();
+      currPic.src = i.toString() + ".png";
+      this.pictures.push(currPic);
+    }
+    this.update = function() {
+      ctx = gameState.context;
+      ctx.drawImage(this.pictures[this.hp], this.x, this.y, this.width, this.height);
     }
 }
 
@@ -275,4 +326,6 @@ function updateGame() {
     }
     mainChar.update();
     enemy.update();
+    healthBar.update();
+    enemyHealthBar.update();
 }

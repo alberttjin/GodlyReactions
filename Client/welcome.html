@@ -1,38 +1,36 @@
 <html>
 <head>
   <title>GodlyReactions</title>
+  <link rel = "stylesheet" type = "text/css" href = "transition.css">
   <link rel = "stylesheet" type = "text/css" href = "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    function submitUsername() {
-      var username = document.getElementById('username').value;
-      socket.emit("username", {newuser : username});
-      location.href = "/index";
-    }
-  </script>
 </head>
 <body>
+  <script>
+    function submitUsername() {
+      var name = document.getElementById('username').value;
+      sessionStorage.setItem("username", name);
+    }
+  </script>
   <div class = "container-fluid">
     <div class = "row" style = "margin-top: 15%">
       <div class="col-md-3">
       </div>
       <div class="col-md-6" id = "name">
-      <p>Enter Your Username</p>
+      <h1 class = "titleElem">Enter Your Username:</h1>
       </div>
       <div class="col-md-3">
       </div>
     </div>
-    <div class = "row">
-      <div class="col-md-3">
+    <div class = "row" style = "margin-top: 2%">
+      <div class="col-md-5">
       </div>
-      <div class="col-md-4">
-      <input type = "text" id = "username"/>
+      <div class="col-md-6">
+      <input type = "text" id = "username" class = "usernameField"/>
+      <form action="/index" class = "submitButton">
+        <button onclick = "submitUsername()">Submit</button>
+      </form>
       </div>
-      <divclass="col-md-2">
-      <button type = "button" onclick = "submitUsername();">Submit</button>
-      <a href="/index" class="btn btn-default" id = "portfolio-button">Portfolio</a>
-      </div>
-      <div class="col-md-3">
+      <div class="col-md-1">
       </div>
     </div>
   </div>

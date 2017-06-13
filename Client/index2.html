@@ -7,10 +7,12 @@
 <body>
 <script>
 function storeName() {
-  localStorage.setItem("username", "albert");
+  var name = document.getElementById('username').value;
+  localStorage.setItem("username", name);
   location.href = "index3.html";
 }
 </script>
+<input type = "text" id = "username">
 <button onclick = "storeName()"></button>
 </body>
 </html>

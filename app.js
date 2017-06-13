@@ -45,6 +45,18 @@ io.sockets.on('connection', function(socket) {
       socket.broadcast.to(roomNum.toString()).emit('won');
     });
 
+    socket.on('username', function(data) {
+      socket.broadcast.to(roomNum.toString()).emit('enemyUserName', data);
+    });
+
+    socket.on('health', function(data) {
+      socket.broadcast.to(roomNum.toString()).emit('healthUpdate', data);
+    });
+
+    socket.on('damaged', function(data) {
+      socket.broadcast.to(roomNum.toString()).emit('lowerHealth');
+    });
+
     socket.on('angle', function(data) {
       socket.broadcast.to(roomNum.toString()).emit('updateAngle', data);
     });

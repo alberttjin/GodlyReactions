@@ -1,0 +1,19 @@
+.titleElem {
+  text-align: center;
+}
+
+.usernameField {
+  display: inline-block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.submitButton {
+  display: inline-block;
+  text-align: center;
+}
+
+.playAgain {
+  display: block;
+  margin: 0 auto;
+}

@@ -19,6 +19,8 @@ var setEnemyAttack = false;
 var attackExists = false;
 var moving = false;
 var invincible = false;
+var enemyInvincible = false;
+var frames = 0;
 var background = new Image();
 background.src = "sky.jpg";
 
@@ -47,7 +49,8 @@ var gameState = {
         this.canvas.height = screen.height;
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-        this.interval = setInterval(updateGame, 0.5);
+        //this.interval = setInterval(updateGame, 20);
+        window.requestAnimationFrame(updateGame);
         username = sessionStorage.getItem("username");
         socket.emit('username', {enemyUser: username});
         window.addEventListener('keydown', function (e) {
@@ -135,8 +138,8 @@ function checkNegative() {
 function moveChar() {
     if (moving) {
       var hypotenuse = pythagorean(mouseX, mouseY, mainChar.x, mainChar.y);
-      var xMove = (mouseX - mainChar.x) / (hypotenuse * 1.5);
-      var yMove = (mouseY - mainChar.y) / (hypotenuse * 1.5);
+      var xMove = ((mouseX - mainChar.x) / (hypotenuse * 1.5)) * 2;
+      var yMove = ((mouseY - mainChar.y) / (hypotenuse * 1.5)) * 2;
       mainChar.x += xMove;
       mainChar.y += yMove;
       moveHealthBar(xMove, yMove);
@@ -171,7 +174,6 @@ function clearCanvas() {
 
 function character(width, height, image, x, y, hp, currUser) {
     this.currUser = currUser;
-    console.log(this.currUser);
     this.width = width;
     this.height = height;
     this.x = x;
@@ -187,6 +189,7 @@ function character(width, height, image, x, y, hp, currUser) {
           healthBar.hp -= 1;
           socket.emit('damaged');
           invincible = true;
+          socket.emit('invincible');
           if (this.hp <= 0) {
             socket.emit("lost");
             location.href = "youlose.html";
@@ -241,8 +244,8 @@ function projectile(width, height, image, x, y, goalx, goaly) {
     var xDis = Math.pow(this.goalx - this.x, 2);
     var yDis = Math.pow(this.goaly - this.y, 2);
     var hypotenuse = Math.sqrt(xDis + yDis);
-    this.moveX = ((this.goalx - this.x) / hypotenuse) * 3;
-    this.moveY = ((this.goaly - this.y) / hypotenuse) * 3;
+    this.moveX = ((this.goalx - this.x) / hypotenuse) * 10;
+    this.moveY = ((this.goaly - this.y) / hypotenuse) * 10;
     this.update = function() {
       this.x += this.moveX;
       this.y += this.moveY;
@@ -281,15 +284,16 @@ function checkStop() {
 }
 
 function checkAttack() {
-    if (attack.x > gameState.canvas.width || attack.x < 0 ||   attack.y > gameState.canvas.length || attack.y < 0) {
+    if (attack.x > gameState.canvas.width || attack.x < 0 || attack.y > gameState.canvas.height || attack.y < 0) {
       attackExists = false;
     }
 }
 
 function checkEnemyAttack() {
-    if (enemyAttack.x > gameState.canvas.width || enemyAttack.x < 0 ||  enemyAttack.y > gameState.canvas.length || enemyAttack.y < 0) {
+    if (enemyAttack.x > gameState.canvas.width || enemyAttack.x < 0 ||  enemyAttack.y > gameState.canvas.height || enemyAttack.y < 0) {
       attackExists = false;
       invincible = false;
+      socket.emit("notinvincible");
     }
 }
 
@@ -311,9 +315,29 @@ function updateServerAttack(x, y, x2, y2) {
     socket.emit("updateAttack", updateContent);
 }
 
+function updateFrames() {
+    frames += 1;
+}
+
+function showChar() {
+    if (invincible) {
+      return (frames % 10) == 0;
+    } else {
+      return true;
+    }
+}
+
+function showEnemyChar() {
+    if (enemyInvincible) {
+      return (frames % 10) == 0;
+    } else {
+      return true;
+    }
+}
+
 function updateGame() {
+    updateFrames();
     clearCanvas();
-    //checkStop();
     updateBackground();
     moveChar();
     if (setAttack) {
@@ -324,8 +348,13 @@ function updateGame() {
       checkEnemyAttack();
       enemyAttack.update();
     }
-    mainChar.update();
-    enemy.update();
+    if (showChar()) {
+      mainChar.update();
+    }
+    if (showEnemyChar()) {
+      enemy.update();
+    }
     healthBar.update();
     enemyHealthBar.update();
+    window.requestAnimationFrame(updateGame);
 }

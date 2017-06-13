@@ -49,6 +49,14 @@ io.sockets.on('connection', function(socket) {
       socket.broadcast.to(roomNum.toString()).emit('enemyUserName', data);
     });
 
+    socket.on('invincible', function(data) {
+      socket.broadcast.to(roomNum.toString()).emit('enemyInvincible');
+    });
+
+    socket.on('notinvincible', function(data) {
+      socket.broadcast.to(roomNum.toString()).emit('enemyNotInvincible');
+    });
+
     socket.on('health', function(data) {
       socket.broadcast.to(roomNum.toString()).emit('healthUpdate', data);
     });

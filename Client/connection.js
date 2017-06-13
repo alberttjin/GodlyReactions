@@ -26,6 +26,16 @@ socket.on("firstJoined", function(data){
     firstJoined = true;
 });
 
+socket.on("enemyInvincible", function(data){
+    console.log("asdf");
+    enemyInvincible = true;
+});
+
+socket.on("enemyNotInvincible", function(data){
+  console.log("assdfdf");
+    enemyInvincible = false;
+});
+
 socket.on("enemyUserName", function(data){
     enemyName = data.enemyUser;
 });

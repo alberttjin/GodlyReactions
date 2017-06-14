@@ -19,7 +19,7 @@ socket.on("lowerHealth", function(data) {
 
 socket.on("updateEnemyAttack", function(data) {
     setEnemyAttack = true;
-    enemyAttack = new projectile(50, 25, "fireball.png", data.currX, data.currY, data.goalX, data.goalY);
+    enemyAttack = new projectile(40, 40, "orb.png", data.currX, data.currY, data.goalX, data.goalY);
 });
 
 socket.on("firstJoined", function(data){
@@ -38,8 +38,4 @@ socket.on("enemyNotInvincible", function(data){
 
 socket.on("enemyUserName", function(data){
     enemyName = data.enemyUser;
-});
-
-socket.on("start", function(data) {
-    startGame();
 });

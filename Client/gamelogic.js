@@ -7,12 +7,12 @@ var MAX_HP = 4;
 var enemy;
 var enemyAttack;
 var firstJoined = false;
-var prevMouseX2 = 10;
-var prevMouseY2 = 0;
-var prevMouseX = 10;
-var prevMouseY = 0;
-var mouseX = 10;
-var mouseY = 0;
+var prevMouseX2;
+var prevMouseY2;
+var prevMouseX;
+var prevMouseY;
+var mouseX;
+var mouseY;
 var attack;
 var setAttack = false;
 var setEnemyAttack = false;
@@ -22,22 +22,26 @@ var invincible = false;
 var enemyInvincible = false;
 var frames = 0;
 var background = new Image();
-background.src = "sky.jpg";
+background.src = "background.png";
 
 function startGame() {
     gameState.start();
+    var screenWidth = window.innerWidth;
+    var screenHeight = window.innerHeight;
     if (firstJoined) {
-      console.log(username);
-      mainChar = new character(50, 50, "dragon2.png", screen.width / 4, screen.height / 2, MAX_HP, true);
-      enemy = new character(50, 50, "dragon2.png", (screen.width * 3) / 4, screen.height / 2, MAX_HP, false);
-      healthBar = new healthbar(50, 10, (screen.width / 4) - 20, (screen.height / 2) + 30, MAX_HP);
-      enemyHealthBar = new healthbar(50, 10, ((screen.width * 3) / 4) - 20, (screen.height / 2) + 30, MAX_HP);
+      mouseX = screenWidth / 4;
+      mouseY = screenHeight / 2;
+      mainChar = new character(50, 50, "dragon2.png", screenWidth / 4, screenHeight / 2, MAX_HP, true);
+      enemy = new character(50, 50, "dragon2.png", (screenWidth * 3) / 4, screenHeight / 2, MAX_HP, false);
+      healthBar = new healthbar(50, 10, (screenWidth / 4) - 20, (screenHeight / 2) + 30, MAX_HP);
+      enemyHealthBar = new healthbar(50, 10, ((screenWidth * 3) / 4) - 20, (screenHeight / 2) + 30, MAX_HP);
     } else {
-      console.log(username);
-      enemy = new character(50, 50, "dragon2.png", screen.width / 4, screen.height / 2, MAX_HP, false);
-      mainChar = new character(50, 50, "dragon2.png", (screen.width * 3) / 4, screen.height / 2, MAX_HP, true);
-      healthBar = new healthbar(50, 10, ((screen.width * 3) / 4) - 20, (screen.height / 2) + 30, MAX_HP);
-      enemyHealthBar = new healthbar(50, 10, (screen.width / 4) - 20, (screen.height / 2) + 30, MAX_HP);
+      mouseX = (screenWidth * 3) / 4;
+      mouseY = screenHeight / 2;
+      enemy = new character(50, 50, "dragon2.png", screenWidth / 4, screenHeight / 2, MAX_HP, false);
+      mainChar = new character(50, 50, "dragon2.png", (screenWidth * 3) / 4, screenHeight / 2, MAX_HP, true);
+      healthBar = new healthbar(50, 10, ((screenWidth * 3) / 4) - 20, (screenHeight / 2) + 30, MAX_HP);
+      enemyHealthBar = new healthbar(50, 10, (screenWidth / 4) - 20, (screenHeight / 2) + 30, MAX_HP);
     }
 
 }
@@ -45,8 +49,8 @@ function startGame() {
 var gameState = {
     canvas : document.createElement("canvas"),
     start : function() {
-        this.canvas.width = screen.width;
-        this.canvas.height = screen.height;
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
         //this.interval = setInterval(updateGame, 20);
@@ -57,14 +61,15 @@ var gameState = {
           if (!attackExists) {
             fire();
           }
-        })
+        });
         window.addEventListener('keyup', function (e) {
           gameState.key = false;
-        })
+        });
         window.addEventListener('mousemove', function (e) {
           gameState.currX = e.clientX;
           gameState.currY = e.clientY;
-        })
+        });
+        window.addEventListener('resize', resizeCanvas);
     }
 }
 
@@ -81,6 +86,11 @@ function setMousePos(event) {
       rotateChar();
     }
     moving = true;
+}
+
+function resizeCanvas() {
+    gameState.canvas.width = window.innerWidth;
+    gameState.canvas.height = window.innerHeight;
 }
 
 function pythagorean(x1, y1, x2, y2) {
@@ -138,8 +148,36 @@ function checkNegative() {
 function moveChar() {
     if (moving) {
       var hypotenuse = pythagorean(mouseX, mouseY, mainChar.x, mainChar.y);
-      var xMove = ((mouseX - mainChar.x) / (hypotenuse * 1.5)) * 2;
-      var yMove = ((mouseY - mainChar.y) / (hypotenuse * 1.5)) * 2;
+      var xMove = ((mouseX - mainChar.x) / (hypotenuse * 1.5)) * 3;
+      var yMove = ((mouseY - mainChar.y) / (hypotenuse * 1.5)) * 3;
+      var xDist = mouseX - mainChar.x;
+      var yDist = mouseY - mainChar.y;
+      if (mainChar.x < mouseX) {
+        if (xDist < xMove) {
+          xMove = xDist;
+          yMove = yDist;
+        }
+      }
+      if (mainChar.x > mouseX) {
+        if (xDist > xMove) {
+          xMove = xDist;
+          yMove = yDist;
+        }
+      }
+
+      if (mainChar.y < mouseY) {
+        if (yDist < yMove) {
+          xMove = xDist;
+          yMove = yDist;
+        }
+      }
+      if (mainChar.y > mouseY) {
+        if (yDist > yMove) {
+          xMove = xDist;
+          yMove = yDist;
+        }
+      }
+
       mainChar.x += xMove;
       mainChar.y += yMove;
       moveHealthBar(xMove, yMove);
@@ -202,7 +240,8 @@ function character(width, height, image, x, y, hp, currUser) {
       ctx.rotate(this.angle);
       ctx.drawImage(this.charModel, this.width / -2, this.height / -2, this.width, this.height);
       ctx.restore();
-      ctx.font = "12px Arial";
+      ctx.font = "bold 12pt calibri";
+      ctx.fillStyle = "white";
       if (this.currUser) {
         console.log("myuser");
         ctx.fillText(username, this.x - 22, this. y - 35);
@@ -244,8 +283,8 @@ function projectile(width, height, image, x, y, goalx, goaly) {
     var xDis = Math.pow(this.goalx - this.x, 2);
     var yDis = Math.pow(this.goaly - this.y, 2);
     var hypotenuse = Math.sqrt(xDis + yDis);
-    this.moveX = ((this.goalx - this.x) / hypotenuse) * 10;
-    this.moveY = ((this.goaly - this.y) / hypotenuse) * 10;
+    this.moveX = ((this.goalx - this.x) / hypotenuse) * 20;
+    this.moveY = ((this.goaly - this.y) / hypotenuse) * 20;
     this.update = function() {
       this.x += this.moveX;
       this.y += this.moveY;
@@ -276,11 +315,11 @@ function fire() {
     setAttack = true;
     attackExists = true;
     updateServerAttack(mainChar.x, mainChar.y, gameState.currX, gameState.currY);
-    attack = new projectile(50, 25, "fireball.png", mainChar.x, mainChar.y, gameState.currX, gameState.currY);
+    attack = new projectile(40, 40, "orb.png", mainChar.x, mainChar.y, gameState.currX, gameState.currY);
 }
 
 function checkStop() {
-    return mainChar.x == mouseX && mainChar.y == mouseY;
+    moving = !(mainChar.x == mouseX && mainChar.y == mouseY);
 }
 
 function checkAttack() {
@@ -321,7 +360,7 @@ function updateFrames() {
 
 function showChar() {
     if (invincible) {
-      return (frames % 10) == 0;
+      return (frames % 10) < 5;
     } else {
       return true;
     }
@@ -329,13 +368,14 @@ function showChar() {
 
 function showEnemyChar() {
     if (enemyInvincible) {
-      return (frames % 10) == 0;
+      return (frames % 10) < 5;
     } else {
       return true;
     }
 }
 
 function updateGame() {
+    checkStop();
     updateFrames();
     clearCanvas();
     updateBackground();

@@ -3,6 +3,9 @@
   <title>GodlyReactions</title>
   <link rel = "stylesheet" type = "text/css" href = "transition.css">
   <link rel = "stylesheet" type = "text/css" href = "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link href="https://fonts.googleapis.com/css?family=Patrick+Hand+SC" rel="stylesheet">
+  <style>
+  </style>
 </head>
 <body>
   <script>
@@ -12,25 +15,25 @@
     }
   </script>
   <div class = "container-fluid">
-    <div class = "row" style = "margin-top: 15%">
+    <div class = "row" style = "margin-top: 10%; margin-bottom: 10%">
       <div class="col-md-3">
       </div>
       <div class="col-md-6" id = "name">
-      <h1 class = "titleElem">Enter Your Username:</h1>
+      <h1 class = "titleElem">Godly Reactions</h1>
       </div>
       <div class="col-md-3">
       </div>
     </div>
     <div class = "row" style = "margin-top: 2%">
-      <div class="col-md-5">
+      <div class="col-md-3">
       </div>
-      <div class="col-md-6">
-      <input type = "text" id = "username" class = "usernameField"/>
-      <form action="/index" class = "submitButton">
-        <button onclick = "submitUsername()">Submit</button>
+      <div class="col-md-6" style = "margin-left: 12%">
+      <input type = "text" id = "username" class = "usernameField" placeholder = "Enter Username"/>
+      <form action="/index" style = "display: inline-block">
+        <button onclick = "submitUsername()" class = "submitButton">>></button>
       </form>
       </div>
-      <div class="col-md-1">
+      <div class="col-md-3">
       </div>
     </div>
   </div>

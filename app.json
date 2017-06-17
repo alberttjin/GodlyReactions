@@ -1,0 +1,6 @@
+{
+  "name": "GodlyReactions",
+  "description": "A simple multiplayer game involving dodging and shooting",
+  "repository": https://github.com/alberttjin/GodlyReactions,
+  "keywords": ["node", "express", "static"]
+}

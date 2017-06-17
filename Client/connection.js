@@ -1,7 +1,7 @@
 var socket = io();
 
 socket.on("updateAngle", function(data) {
-    enemy.angle += data.rotation;
+    enemy.angle = data.rotation;
 });
 
 

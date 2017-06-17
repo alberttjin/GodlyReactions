@@ -31,17 +31,17 @@ function startGame() {
     if (firstJoined) {
       mouseX = screenWidth / 4;
       mouseY = screenHeight / 2;
-      mainChar = new character(50, 50, "dragon2.png", screenWidth / 4, screenHeight / 2, MAX_HP, true);
-      enemy = new character(50, 50, "dragon2.png", (screenWidth * 3) / 4, screenHeight / 2, MAX_HP, false);
-      healthBar = new healthbar(50, 10, (screenWidth / 4) - 20, (screenHeight / 2) + 30, MAX_HP);
-      enemyHealthBar = new healthbar(50, 10, ((screenWidth * 3) / 4) - 20, (screenHeight / 2) + 30, MAX_HP);
+      mainChar = new character(75, 75, "dragon.png", screenWidth / 4, screenHeight / 2, MAX_HP, true);
+      enemy = new character(75, 75, "dragon.png", (screenWidth * 3) / 4, screenHeight / 2, MAX_HP, false);
+      healthBar = new healthbar(50, 10, (screenWidth / 4) + 10, (screenHeight / 2) + 70, MAX_HP);
+      enemyHealthBar = new healthbar(50, 10, ((screenWidth * 3) / 4) + 10, (screenHeight / 2) + 70, MAX_HP);
     } else {
       mouseX = (screenWidth * 3) / 4;
       mouseY = screenHeight / 2;
-      enemy = new character(50, 50, "dragon2.png", screenWidth / 4, screenHeight / 2, MAX_HP, false);
-      mainChar = new character(50, 50, "dragon2.png", (screenWidth * 3) / 4, screenHeight / 2, MAX_HP, true);
-      healthBar = new healthbar(50, 10, ((screenWidth * 3) / 4) - 20, (screenHeight / 2) + 30, MAX_HP);
-      enemyHealthBar = new healthbar(50, 10, (screenWidth / 4) - 20, (screenHeight / 2) + 30, MAX_HP);
+      enemy = new character(75, 75, "dragon.png", screenWidth / 4, screenHeight / 2, MAX_HP, false);
+      mainChar = new character(75, 75, "dragon.png", (screenWidth * 3) / 4, screenHeight / 2, MAX_HP, true);
+      healthBar = new healthbar(50, 10, ((screenWidth * 3) / 4) + 10, (screenHeight / 2) + 70, MAX_HP);
+      enemyHealthBar = new healthbar(50, 10, (screenWidth / 4) + 10, (screenHeight / 2) + 70, MAX_HP);
     }
 
 }
@@ -80,14 +80,19 @@ function setMousePos(event) {
     prevMouseY = mouseY;
     mouseX = event.clientX;
     mouseY = event.clientY;
-    if (mainChar.x == prevMouseX && mainChar.y == prevMouseY) {
-      rotateCharSame();
-    } else {
-      rotateChar();
-    }
+    rotateChar();
     moving = true;
 }
 
+function rotateChar() {
+    var slope = (mouseY - mainChar.y) / (mouseX - mainChar.x);
+    var rotateAmount = (Math.PI / 2) + Math.atan(slope);
+    if (mouseX < mainChar.x) {
+      rotateAmount += Math.PI;
+    }
+    mainChar.angle = rotateAmount;
+    socket.emit("angle", {rotation: rotateAmount});
+}
 function resizeCanvas() {
     gameState.canvas.width = window.innerWidth;
     gameState.canvas.height = window.innerHeight;
@@ -98,7 +103,7 @@ function pythagorean(x1, y1, x2, y2) {
     var yDis = Math.pow((y1 - y2), 2);
     return Math.sqrt(xDis + yDis);
 }
-
+/*
 function rotateCharSame() {
     var slope1 = (prevMouseY - prevMouseY2) / (prevMouseX - prevMouseX2);
     var slope2 = (mouseY - prevMouseY) / (mouseX - prevMouseX);
@@ -144,6 +149,7 @@ function checkNegative() {
       return result < mouseY;
     }
 }
+*/
 
 function moveChar() {
     if (moving) {
@@ -236,7 +242,7 @@ function character(width, height, image, x, y, hp, currUser) {
       }
       ctx = gameState.context;
       ctx.save();
-      ctx.translate(this.x, this.y)
+      ctx.translate(this.x + (this.width / 2), this.y + (this.height / 2));
       ctx.rotate(this.angle);
       ctx.drawImage(this.charModel, this.width / -2, this.height / -2, this.width, this.height);
       ctx.restore();
@@ -244,9 +250,9 @@ function character(width, height, image, x, y, hp, currUser) {
       ctx.fillStyle = "white";
       if (this.currUser) {
         console.log("myuser");
-        ctx.fillText(username, this.x - 22, this. y - 35);
+        ctx.fillText(username, this.x + 10, this. y - 15);
       } else {
-        ctx.fillText(enemyName, this.x - 22, this. y - 35);
+        ctx.fillText(enemyName, this.x + 10, this. y - 15);
       }
     }
 }

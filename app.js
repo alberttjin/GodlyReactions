@@ -8,7 +8,7 @@ for (i = 0; i < 30; i++) {
   rooms.push(0);
 }
 
-server.listen(2000);
+server.listen(process.env.PORT || 2000);
 
 app.get('/', function(req, res) {
   res.sendFile(__dirname + '/Client/welcome.html');
@@ -20,7 +20,6 @@ app.get('/index', function(req, res) {
 
 
 app.use('/', express.static(__dirname + '/Client'));
-console.log('finding clients');
 
 io.sockets.on('connection', function(socket) {
     var roomNum;

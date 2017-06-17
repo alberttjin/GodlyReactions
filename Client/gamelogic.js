@@ -7,10 +7,6 @@ var MAX_HP = 4;
 var enemy;
 var enemyAttack;
 var firstJoined = false;
-var prevMouseX2;
-var prevMouseY2;
-var prevMouseX;
-var prevMouseY;
 var mouseX;
 var mouseY;
 var attack;
@@ -97,14 +93,11 @@ function clearCanvas() {
 
 function setMousePos(event) {
     //set the position of the previous mouse click to calculate movement for char
-    prevMouseX2 = prevMouseX;
-    prevMouseY2 = prevMouseY;
-    prevMouseX = mouseX;
-    prevMouseY = mouseY;
     mouseX = event.clientX;
     mouseY = event.clientY;
-    //rotate char state that character is moving
+    //rotate char and state that character is moving
     rotateChar();
+    calcCharMove();
     moving = true;
 }
 
@@ -116,6 +109,8 @@ function character(width, height, image, x, y, hp, currUser) {
     this.height = height;
     this.x = x;
     this.y = y;
+    this.xMove = 0;
+    this.yMove = 0;
     this.angle = 0;
     this.hp = hp;
     this.charModel = new Image();
@@ -198,46 +193,10 @@ function healthbar(width, height, x, y, hp) {
 //Set of functions that involve moving/rotating and instantiating objects
 function moveChar() {
     if (moving) {
-      /*calculates move distance toward mouse by taking fraction of x and y
-      difference and dividing by the hypotenuse*/
-      var hypotenuse = pythagorean(mouseX, mouseY, mainChar.x, mainChar.y);
-      var xMove = ((mouseX - mainChar.x) / (hypotenuse * 1.5)) * 3;
-      var yMove = ((mouseY - mainChar.y) / (hypotenuse * 1.5)) * 3;
-      var xDist = mouseX - mainChar.x;
-      var yDist = mouseY - mainChar.y;
-
-      /* prevents going past the mouse click point by setting move variables to
-      remainding distance if next move will exceed mouse click point*/
-      if (mainChar.x < mouseX) {
-        if (xDist < xMove) {
-          xMove = xDist;
-          yMove = yDist;
-        }
-      }
-      if (mainChar.x > mouseX) {
-        if (xDist > xMove) {
-          xMove = xDist;
-          yMove = yDist;
-        }
-      }
-
-      if (mainChar.y < mouseY) {
-        if (yDist < yMove) {
-          xMove = xDist;
-          yMove = yDist;
-        }
-      }
-      if (mainChar.y > mouseY) {
-        if (yDist > yMove) {
-          xMove = xDist;
-          yMove = yDist;
-        }
-      }
-
-      mainChar.x += xMove;
-      mainChar.y += yMove;
-      moveHealthBar(xMove, yMove);
-      updateServerChar(xMove, yMove);
+      mainChar.x += mainChar.xMove;
+      mainChar.y += mainChar.yMove;
+      moveHealthBar(mainChar.xMove, mainChar.yMove);
+      updateServerChar(mainChar.xMove, mainChar.yMove);
     }
 }
 
@@ -405,4 +364,44 @@ function pythagorean(x1, y1, x2, y2) {
     var xDis = Math.pow((x1 - x2), 2);
     var yDis = Math.pow((y1 - y2), 2);
     return Math.sqrt(xDis + yDis);
+}
+
+function calcCharMove() {
+    /*calculates move distance toward mouse by taking fraction of x and y
+    difference and dividing by the hypotenuse*/
+    var hypotenuse = pythagorean(mouseX, mouseY, mainChar.x, mainChar.y);
+    var xMove = ((mouseX - mainChar.x) / (hypotenuse * 1.5)) * 5;
+    var yMove = ((mouseY - mainChar.y) / (hypotenuse * 1.5)) * 5;
+    var xDist = mouseX - mainChar.x;
+    var yDist = mouseY - mainChar.y;
+
+    /* prevents going past the mouse click point by setting move variables to
+    remainding distance if next move will exceed mouse click point*/
+    if (mainChar.x < mouseX) {
+      if (xDist < xMove) {
+        xMove = xDist;
+        yMove = yDist;
+      }
+    }
+    if (mainChar.x > mouseX) {
+      if (xDist > xMove) {
+        xMove = xDist;
+        yMove = yDist;
+      }
+    }
+
+    if (mainChar.y < mouseY) {
+      if (yDist < yMove) {
+        xMove = xDist;
+        yMove = yDist;
+      }
+    }
+    if (mainChar.y > mouseY) {
+      if (yDist > yMove) {
+        xMove = xDist;
+        yMove = yDist;
+      }
+    }
+    mainChar.xMove = xMove;
+    mainChar.yMove = yMove;
 }

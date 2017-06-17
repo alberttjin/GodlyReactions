@@ -24,7 +24,6 @@ app.use('/', express.static(__dirname + '/Client'));
 io.sockets.on('connection', function(socket) {
     var roomNum;
     var username;
-    //socket.on('username', function(data) {
       for (i = 0; i < rooms.length; i++) {
         if (rooms[i] < 2) {
           rooms[i] += 1;
@@ -39,7 +38,6 @@ io.sockets.on('connection', function(socket) {
           break;
         }
       }
-    //});
     socket.on('lost', function(data) {
       socket.broadcast.to(roomNum.toString()).emit('won');
     });

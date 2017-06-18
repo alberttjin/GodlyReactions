@@ -62,6 +62,10 @@ io.sockets.on('connection', function(socket) {
       socket.broadcast.to(roomNum.toString()).emit('lowerHealth');
     });
 
+    socket.on('enemyStop', function(data) {
+      socket.broadcast.to(roomNum.toString()).emit('enemyStop');
+    });
+
     socket.on('angle', function(data) {
       socket.broadcast.to(roomNum.toString()).emit('updateAngle', data);
     });

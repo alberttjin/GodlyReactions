@@ -14,6 +14,7 @@ var setAttack = false;
 var setEnemyAttack = false;
 var attackExists = false;
 var moving = false;
+var enemyMoving = false;
 var invincible = false;
 var enemyInvincible = false;
 var frames = 0;
@@ -196,13 +197,17 @@ function moveChar() {
       mainChar.x += mainChar.xMove;
       mainChar.y += mainChar.yMove;
       moveHealthBar(mainChar.xMove, mainChar.yMove);
-      updateServerChar(mainChar.xMove, mainChar.yMove);
     }
 }
 
-function moveEnemy(xMove, yMove) {
-    enemy.x += xMove;
-    enemy.y += yMove;
+function moveEnemy() {
+    enemy.x += enemy.xMove;
+    enemy.y += enemy.yMove;
+}
+
+function setEnemyMove(xMove, yMove) {
+    enemy.xMove = xMove;
+    enemy.yMove = yMove;
 }
 
 function moveHealthBar(xMove, yMove) {
@@ -261,6 +266,9 @@ function checkHP() {
 
 function checkStop() {
     moving = !(mainChar.x == mouseX && mainChar.y == mouseY);
+    if (!moving) {
+      socket.emit("enemyStop");
+    }
 }
 
 function checkAttack() {
@@ -339,7 +347,9 @@ function updateGame() {
     updateFrames();
     clearCanvas();
     updateBackground();
+    removeVibration();
     moveChar();
+    moveEnemy();
     if (setAttack) {
       checkAttack();
       attack.update();
@@ -359,11 +369,49 @@ function updateGame() {
     window.requestAnimationFrame(updateGame);
 }
 
+
 //Utility functions for mathematical calculations
 function pythagorean(x1, y1, x2, y2) {
     var xDis = Math.pow((x1 - x2), 2);
     var yDis = Math.pow((y1 - y2), 2);
     return Math.sqrt(xDis + yDis);
+}
+
+function removeVibration() {
+    var xDist = mouseX - mainChar.x;
+    var yDist = mouseY - mainChar.y;
+
+    /* prevents going past the mouse click point by setting move variables to
+    remainding distance if next move will exceed mouse click point */
+    if (mainChar.x < mouseX) {
+      if (xDist < mainChar.xMove) {
+        mainChar.xMove = xDist;
+        mainChar.yMove = yDist;
+        updateServerChar(mainChar.xMove, mainChar.yMove);
+      }
+    }
+    if (mainChar.x > mouseX) {
+      if (xDist > mainChar.xMove) {
+        mainChar.xMove = xDist;
+        mainChar.yMove = yDist;
+        updateServerChar(mainChar.xMove, mainChar.yMove);
+      }
+    }
+
+    if (mainChar.y < mouseY) {
+      if (yDist < mainChar.yMove) {
+        mainChar.xMove = xDist;
+        mainChar.yMove = yDist;
+        updateServerChar(mainChar.xMove, mainChar.yMove);
+      }
+    }
+    if (mainChar.y > mouseY) {
+      if (yDist > mainChar.yMove) {
+        mainChar.xMove = xDist;
+        mainChar.yMove = yDist;
+        updateServerChar(mainChar.xMove, mainChar.yMove);
+      }
+    }
 }
 
 function calcCharMove() {
@@ -372,36 +420,7 @@ function calcCharMove() {
     var hypotenuse = pythagorean(mouseX, mouseY, mainChar.x, mainChar.y);
     var xMove = ((mouseX - mainChar.x) / (hypotenuse * 1.5)) * 5;
     var yMove = ((mouseY - mainChar.y) / (hypotenuse * 1.5)) * 5;
-    var xDist = mouseX - mainChar.x;
-    var yDist = mouseY - mainChar.y;
-
-    /* prevents going past the mouse click point by setting move variables to
-    remainding distance if next move will exceed mouse click point*/
-    if (mainChar.x < mouseX) {
-      if (xDist < xMove) {
-        xMove = xDist;
-        yMove = yDist;
-      }
-    }
-    if (mainChar.x > mouseX) {
-      if (xDist > xMove) {
-        xMove = xDist;
-        yMove = yDist;
-      }
-    }
-
-    if (mainChar.y < mouseY) {
-      if (yDist < yMove) {
-        xMove = xDist;
-        yMove = yDist;
-      }
-    }
-    if (mainChar.y > mouseY) {
-      if (yDist > yMove) {
-        xMove = xDist;
-        yMove = yDist;
-      }
-    }
     mainChar.xMove = xMove;
     mainChar.yMove = yMove;
+    updateServerChar(mainChar.xMove, mainChar.yMove);
 }

@@ -6,11 +6,16 @@ socket.on("updateAngle", function(data) {
 
 
 socket.on("updateEnemyChar", function(data) {
-    moveEnemy(data.characterX, data.characterY);
+    setEnemyMove(data.characterX, data.characterY);
 });
 
 socket.on("healthUpdate", function(data) {
     moveEnemyHealthBar(data.healthX, data.healthY);
+});
+
+socket.on('enemyStop', function(data) {
+    enemy.xMove = 0;
+    enemy.yMove = 0;
 });
 
 socket.on("lowerHealth", function(data) {

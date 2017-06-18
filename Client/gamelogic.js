@@ -203,6 +203,7 @@ function moveChar() {
 function moveEnemy() {
     enemy.x += enemy.xMove;
     enemy.y += enemy.yMove;
+    moveEnemyHealthBar(enemy.xMove, enemy.yMove);
 }
 
 function setEnemyMove(xMove, yMove) {
@@ -213,7 +214,6 @@ function setEnemyMove(xMove, yMove) {
 function moveHealthBar(xMove, yMove) {
     healthBar.x += xMove;
     healthBar.y += yMove;
-    socket.emit('health', {healthX : xMove, healthY: yMove});
 }
 
 function moveEnemyHealthBar(xMove, yMove) {

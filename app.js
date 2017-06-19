@@ -54,10 +54,6 @@ io.sockets.on('connection', function(socket) {
       socket.broadcast.to(roomNum.toString()).emit('enemyNotInvincible');
     });
 
-    socket.on('health', function(data) {
-      socket.broadcast.to(roomNum.toString()).emit('healthUpdate', data);
-    });
-
     socket.on('damaged', function(data) {
       socket.broadcast.to(roomNum.toString()).emit('lowerHealth');
     });

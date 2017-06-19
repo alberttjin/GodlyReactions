@@ -3,7 +3,6 @@ var healthBar;
 var username;
 var enemyName;
 var enemyHealthBar;
-var MAX_HP = 4;
 var enemy;
 var enemyAttack;
 var firstJoined = false;
@@ -20,6 +19,7 @@ var enemyInvincible = false;
 var frames = 0;
 var background = new Image();
 background.src = "background.png";
+var MAX_HP = 4;
 
 //Set of functions/variables that manipulate the HTML Canvas and read input
 function startGame() {
@@ -276,6 +276,7 @@ function checkAttack() {
     if (attack.x > gameState.canvas.width || attack.x < 0 ||
       attack.y > gameState.canvas.height || attack.y < 0) {
       attackExists = false;
+      setAttack = false;
     }
 }
 
@@ -286,6 +287,7 @@ function checkEnemyAttack() {
       enemyAttack.y > gameState.canvas.height || enemyAttack.y < 0) {
       attackExists = false;
       invincible = false;
+      setEnemyAttack = false;
       socket.emit("notinvincible");
     }
 }

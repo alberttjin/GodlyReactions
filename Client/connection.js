@@ -9,10 +9,6 @@ socket.on("updateEnemyChar", function(data) {
     setEnemyMove(data.characterX, data.characterY);
 });
 
-socket.on("healthUpdate", function(data) {
-    moveEnemyHealthBar(data.healthX, data.healthY);
-});
-
 socket.on('enemyStop', function(data) {
     enemy.xMove = 0;
     enemy.yMove = 0;
